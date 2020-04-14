@@ -1,0 +1,25 @@
+{
+	"node":"https://api.hive.blog",
+	"interval": 60,
+	"debug": 0,
+	"email": {
+		"from": "hive-recovery<hive-recovery@domain.com>",
+		"to": "user@domain.com",
+		"smtp": "smtp.domain.com",
+		"port": 25
+	},
+	"imap": {
+		"user": "recovery@hivechain.app",
+		"password": "yourimappassword",
+		"host": "imap.domain.com",
+		"port": 993,
+		"tls": true,
+		"tlsOptions": { "rejectUnauthorized": false },
+		"authTimeout": 3000
+	},
+	"account": { 
+		"name":"hive.recovery", 
+		"active":"5......",
+		"memo":"5......" 
+	}
+}
