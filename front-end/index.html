@@ -11,13 +11,18 @@
 	<div class="container pt-3">
 		<h1 class="text-center mb-5"><img src="logo.png">Hive Account Recovery</h1>
 		<h3>Change Recovery Account</h3>
-		<sub>*Requires Hive Keychain</sub>
 		<form id="recovery-init" method="POST">
 			<div id="recovery-init-feedback" class="alert"></div>
 			<div class="form-group">
 				<label for="init-account" class="sr-only">Your Account Name</label>
 				<input type="text" name="init-account" id="init-account" autocomplete="off" class="form-control" placeholder="Username">
+				<p class="text-muted small mt-1">Enter your account name</p>
 			</div>
+			<div class="form-group">
+				<label for="init-password" class="sr-only">Master Password</label>
+				<input type="password" name="init-password" id="init-password" autocomplete="off" class="form-control" placeholder="Master Password">
+				<p class="text-muted small mt-1">Enter your account MASTER PASSWORD</p>
+			</div>			
 			<div class="form-group">
 				<label for="init-email" class="sr-only">Email Address</label>
 				<input type="text" name="init-email" id="init-email" autocomplete="off" class="form-control" placeholder="Email address">
@@ -64,8 +69,9 @@
 		</p>
 	</div>
 	<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
-	<script src="https://unpkg.com/dsteem@^0.10.1/dist/dsteem.js"></script>
+	<script src="https://unpkg.com/@hivechain/dhive@^0.13.3/dist/dhive.js"></script>
 	<script src="crypto-js.js"></script>
+	<script src="steem.min.js"></script>
 	<script src="index.js"></script>
 </body>
 </html>

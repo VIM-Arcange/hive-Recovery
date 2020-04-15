@@ -1,13 +1,13 @@
-const hiveClient = new dsteem.Client("https://api.hive.blog");
+const hiveClient = new dhive.Client("https://api.hive.blog");
 
 const RECOVERY_ACCOUNT = "hive.recovery";
 const RECOVERY_EMAIL = "recovery@hivechain.app";
 
-// Checking if the already exists
+// Checking if the account exists
 async function checkAccountName(username) {
   const ac = await hiveClient.database.call("lookup_account_names", [[username]]);
 
-  return (ac[0] === null) ? true : false;
+  return (ac[0] != null) ? true : false;
 }
 
 function updatePayload()
@@ -27,21 +27,21 @@ $(document).ready(async function() {
   // Check if the account exists
   $("#init-account").keyup(async function() {
     const ac = await checkAccountName($(this).val());
-    !(ac) ? $(this).removeClass("is-invalid").addClass("is-valid") : $(this).removeClass("is-valid").addClass("is-invalid");
+    (ac) ? $(this).removeClass("is-invalid").addClass("is-valid") : $(this).removeClass("is-valid").addClass("is-invalid");
   });
 
   // Check if the account exists
   $("#recover-account").keyup(async function() {
     const ac = await checkAccountName($(this).val());
-    !(ac) ? $(this).removeClass("is-invalid").addClass("is-valid") : $(this).removeClass("is-valid").addClass("is-invalid");
+    (ac) ? $(this).removeClass("is-invalid").addClass("is-valid") : $(this).removeClass("is-valid").addClass("is-invalid");
   });
 
   // Processing change recovery form
   $("#recovery-init").submit(async function(e) {
     e.preventDefault();
 
-    const keychain = window.hive_keychain;
     const account = $("#init-account").val();
+    const password = $("#init-password").val();
     const email = $("#init-email").val();
     const secret = $("#init-secret").val();
     const feedback = $("#recovery-init-feedback");
@@ -49,19 +49,22 @@ $(document).ready(async function() {
     feedback.removeClass("alert-success").removeClass("alert-danger");
 
     try {
-      if(!keychain) {
-        alert("HIVE Keychain was not found.\nInstall Hive Keychain extension");
-      }
-
       if(account === "") { 
         throw ("Invalid account");
+      }
+      if(password === "") { 
+        throw ("Invalid password");
       }
       if(secret === "") { 
         throw ("Invalid secret");
       }
 
+      const ownerKey = dhive.PrivateKey.fromLogin(account, password, 'owner').toString();
+      const memoKey = dhive.PrivateKey.fromLogin(account, password, 'memo').toString();
+      const memoKeyRA = (await hiveClient.database.getAccounts([RECOVERY_ACCOUNT]))[0].memo_key;
+
       const data = JSON.stringify({account:account,email:email});
-      const memo = "#" + CryptoJS.AES.encrypt(data,secret).toString();
+      const memo = steem.memo.encode(memoKey, memoKeyRA, "#" + CryptoJS.AES.encrypt(data,secret).toString());
 
       const op1 =["transfer", {
         from: account,
@@ -75,14 +78,16 @@ $(document).ready(async function() {
         extensions: []
       }];
 
-      //keychain.requestBroadcast(account, [op1], "active", function (response) {
-      keychain.requestBroadcast(account, [op1,op2], "active", function (response) {
-        if (response.success) {
-          feedback.addClass("alert-success").text("You have successfuly changed your recovery account!");
-        } else {
-          feedback.addClass("alert-danger").text(response.message);
-        }
+      hiveClient.broadcast.sendOperations([op1,op2], dhive.PrivateKey.from(ownerKey))
+      .then(res => {
+        console.log(res)
+        feedback.addClass('alert-success').text("You have successfuly changed your recovery account!");
+      })
+      .catch(err => {
+        console.log(err)
+        feedback.addClass('alert-danger').text(e.message);
       });
+      
     } catch(e) {
       alert(e);
     }
@@ -90,10 +95,10 @@ $(document).ready(async function() {
 
 
   // Processing recover account form
-
+  
   $("#recover-account").keyup(async function() {
     const ac = await checkAccountName($(this).val());
-    !(ac) ? $(this).removeClass("is-invalid").addClass("is-valid") : $(this).removeClass("is-valid").addClass("is-invalid");
+    (ac) ? $(this).removeClass("is-invalid").addClass("is-valid") : $(this).removeClass("is-valid").addClass("is-invalid");
     updatePayload();
   });
   $("#recover-secret").keyup(async function() {
