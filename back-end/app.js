@@ -1,4 +1,4 @@
-const { Client, PrivateKey } = require('@hivechain/dhive');
+const { Client, PrivateKey } = require('@hiveio/dhive');
 const axios = require('axios');
 const cryptoJS = require('crypto-js')
 const imaps = require('imap-simple');
@@ -8,6 +8,13 @@ const parser = require("mailparser").simpleParser
 
 const config = require("./config.js")
 const hiveClient = new Client(config.node);
+
+hiveClient.database.getVersion().then((res) => {
+  //console.log("blockchain version",res.blockchain_version)
+  if (res.blockchain_version !== '0.23.0') {
+    hiveClient.updateOperations(true)
+  }
+})
 
 const email = config.email;
 const smtp = nodemailer.createTransport({
@@ -149,47 +156,42 @@ async function findRequest(name) {
 }
 
 async function processBody(from, text)  {
-  try {
-    const data = JSON.parse(text)
+  const data = JSON.parse(text)
 
-    if(!data.account) throw new Error("No account")
-    if(!data.secret) throw new Error("No secret")
-    if(!data.pubkey) throw new Error("No pubkey")
+  if(!data.account) throw new Error("No account")
+  if(!data.secret) throw new Error("No secret")
+  if(!data.pubkey) throw new Error("No pubkey")
 
-    // Check if we are the recovery account
-    const account = (await get_accounts([config.account.name]))[0]
-    if(!account) throw new Error(`Failed to retrieve account data for ${config.account.name}`)
-    if(!account.recovery_account==config.account.name) throw new Error("Invalid recovery account")
-    // Search for setup transaction
-    const txSetup = await findSetup(data.account)
-    if(!txSetup) throw new Error(`No setup found for ${data.account}`)
-    // decode transaction memo using our memo key
-    const memo = steem.memo.decode(config.account.memo,txSetup[1].op[1].memo)
-    logdebug(memo)
-    // decode payload using passphrase
-    const decrypted = cryptoJS.AES.decrypt(memo.substring(1),data.secret).toString(cryptoJS.enc.Utf8)
-    const payload =  JSON.parse(decrypted)
-    if(payload.account!=data.account) throw new Error(`Account mismatch - payload:${payload.account} sent:${data.account}`)
-    if(payload.email && payload.email!=from) throw new Error(`Email mismatch - payload:${payload.email} sent:${from}`)
-    // search for last recovery request
-    const txRequest =  await findRequest(name)
-    if(txRequest) throw new Error(`Declined - Wait 24 hours between requests`)
+  // Check if we are the recovery account
+  const account = (await get_accounts([config.account.name]))[0]
+  if(!account) throw new Error(`Failed to retrieve account data for ${config.account.name}`)
+  if(!account.recovery_account==config.account.name) throw new Error("Invalid recovery account")
+  // Search for setup transaction
+  const txSetup = await findSetup(data.account)
+  if(!txSetup) throw new Error(`No setup found for ${data.account}`)
+  // decode transaction memo using our memo key
+  const memo = steem.memo.decode(config.account.memo,txSetup[1].op[1].memo)
+  logdebug(memo)
+  // decode payload using passphrase
+  const decrypted = cryptoJS.AES.decrypt(memo.substring(1),data.secret).toString(cryptoJS.enc.Utf8)
+  const payload =  JSON.parse(decrypted)
+  if(payload.account!=data.account) throw new Error(`Account mismatch - payload:${payload.account} sent:${data.account}`)
+  if(payload.email && payload.email!=from) throw new Error(`Email mismatch - payload:${payload.email} sent:${from}`)
+  // search for last recovery request
+  const txRequest =  await findRequest(name)
+  if(txRequest) throw new Error(`Declined - Wait 24 hours between requests`)
 
-    const opRecovery = [ "request_account_recovery",
-      {
-        "recovery_account":config.account.name,
-        "account_to_recover":data.account,
-        "new_owner_authority": {"weight_threshold":1,"account_auths":[],"key_auths":[[data.pubkey,1]] },
-        "extensions":[]
-      }
-    ]
+  const opRecovery = [ "request_account_recovery",
+    {
+      "recovery_account":config.account.name,
+      "account_to_recover":data.account,
+      "new_owner_authority": {"weight_threshold":1,"account_auths":[],"key_auths":[[data.pubkey,1]] },
+      "extensions":[]
+    }
+  ]
 
-    await hiveClient.broadcast.sendOperations([op], PrivateKey.from(config.account.active))
-    notify(`[Hive-Recovery] recovery process initiated for ${data.account}`)
-
-  } catch(e) {
-    logerror(e.message)
-  }
+  await hiveClient.broadcast.sendOperations([op], PrivateKey.from(config.account.active))
+  notify(`[Hive-Recovery] recovery process initiated for ${data.account}`)
 }
 
 const service = async () => {
@@ -204,14 +206,18 @@ const service = async () => {
     const messages = await connection.search(searchCriteria, fetchOptions);
 
 		for(const message of messages) {
-			const parsed = await parser(message.parts[0].body)
-			const body = parsed.text.trim().replace("\n"," ")
-			const from = parsed.from.value[0].address
-
-      log(`Processing message from ${from} - ${parsed.subject}`)
-      const res = await processBody(from, body)			
-			// Mark message for deletion
-			await imap.addFlags(message.attributes.uid, "\Deleted")
+      try {
+        const parsed = await parser(message.parts[0].body)
+        const body = parsed.text.trim().replace("\n"," ")
+        const from = parsed.from.value[0].address
+  
+        log(`Processing message from ${from} - ${parsed.subject}`)
+        await processBody(from, body)			
+        // Mark message for deletion if successfully processed
+        await imap.addFlags(message.attributes.uid, "\Deleted")
+      } catch(e) {
+        logerror(e.message)
+      }
 		}
     await connection.imap.closeBox(true)
     connection.end();
