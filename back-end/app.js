@@ -96,7 +96,7 @@ async function get_accounts(accounts) {
   return (await post(call)).result
 }
 
-async function get_accounts_history(account, start, limit) {
+async function get_account_history(account, start, limit) {
   const call = {
     "jsonrpc":"2.0",
     "id":1,
@@ -112,9 +112,9 @@ async function findSetup(name) {
     const MIN_DELAY = 30
     const timestamp = Date.now() - (MIN_DELAY*msDay);
     const page = 5
-    let lastID = (await get_accounts_history(config.account.name, -1, 0))[0][0]
+    let lastID = (await get_account_history(config.account.name, -1, 1))[0][0]
     while(lastID > 0) {
-      const history = (await get_accounts_history(config.account.name, lastID, Math.min(lastID,page-1)))
+      const history = (await get_account_history(config.account.name, lastID, Math.min(lastID,page-1)))
       const setup = history.filter(o => Date.parse(o[1].timestamp) < timestamp && o[1].op[0]=="transfer" && o[1].op[1].from==name)
       const tx = setup.pop()
       if(tx) {
@@ -163,9 +163,9 @@ async function processBody(from, text)  {
   if(!data.pubkey) throw new Error("No pubkey")
 
   // Check if we are the recovery account
-  const account = (await get_accounts([config.account.name]))[0]
+  const account = (await get_accounts([data.account]))[0]
   if(!account) throw new Error(`Failed to retrieve account data for ${config.account.name}`)
-  if(!account.recovery_account==config.account.name) throw new Error("Invalid recovery account")
+  if(account.recovery_account!=config.account.name) throw new Error("Invalid recovery account")
   // Search for setup transaction
   const txSetup = await findSetup(data.account)
   if(!txSetup) throw new Error(`No setup found for ${data.account}`)
