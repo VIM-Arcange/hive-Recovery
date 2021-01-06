@@ -3,18 +3,11 @@ const axios = require('axios');
 const cryptoJS = require('crypto-js')
 const imaps = require('imap-simple');
 const nodemailer = require("nodemailer")
-const steem = require("steem");
+const hivejs = require('@hiveio/hive-js')
 const parser = require("mailparser").simpleParser
 
 const config = require("./config.js")
 const hiveClient = new Client(config.node);
-
-hiveClient.database.getVersion().then((res) => {
-  //console.log("blockchain version",res.blockchain_version)
-  if (res.blockchain_version !== '0.23.0') {
-    hiveClient.updateOperations(true)
-  }
-})
 
 const email = config.email;
 const smtp = nodemailer.createTransport({
@@ -170,7 +163,7 @@ async function processBody(from, text)  {
   const txSetup = await findSetup(data.account)
   if(!txSetup) throw new Error(`No setup found for ${data.account}`)
   // decode transaction memo using our memo key
-  const memo = steem.memo.decode(config.account.memo,txSetup[1].op[1].memo)
+  const memo = hivejs.memo.decode(config.account.memo,txSetup[1].op[1].memo)
   logdebug(memo)
   // decode payload using passphrase
   const decrypted = cryptoJS.AES.decrypt(memo.substring(1),data.secret).toString(cryptoJS.enc.Utf8)

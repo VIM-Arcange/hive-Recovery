@@ -70,7 +70,7 @@ $(document).ready(async function() {
       const memoKeyRA = (await hiveClient.database.getAccounts([RECOVERY_ACCOUNT]))[0].memo_key;
 
       const data = JSON.stringify({account:account,email:email});
-      const memo = steem.memo.encode(memoKey, memoKeyRA, "#" + CryptoJS.AES.encrypt(data,secret).toString());
+      const memo = hive.memo.encode(memoKey, memoKeyRA, "#" + CryptoJS.AES.encrypt(data,secret).toString());
 
       const op1 =["transfer", {
         from: account,
