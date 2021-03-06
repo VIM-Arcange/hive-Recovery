@@ -1,10 +1,4 @@
 const hiveClient = new dhive.Client("https://api.hive.blog");
-hiveClient.database.getVersion().then((res) => {
-  //console.log("blockchain version",res.blockchain_version)
-  if (res.blockchain_version !== '0.23.0') {
-    hiveClient.updateOperations(true)
-  }
-})
 
 const RECOVERY_ACCOUNT = "hive.recovery";
 const RECOVERY_EMAIL = "recovery@hivechain.app";
@@ -67,8 +61,16 @@ $(document).ready(async function() {
 
       const ownerKey = dhive.PrivateKey.fromLogin(account, password, 'owner').toString();
       const memoKey = dhive.PrivateKey.fromLogin(account, password, 'memo').toString();
-      const memoKeyRA = (await hiveClient.database.getAccounts([RECOVERY_ACCOUNT]))[0].memo_key;
+      const accounts = await hiveClient.database.getAccounts([RECOVERY_ACCOUNT, account])
 
+      if(!accounts[1]) {
+        throw (`Unknown account ${account}`)
+      }
+      if(accounts[1].balance.startsWith("0.000")) {
+        throw ("Insufficient HIVE balance - need at least 0.001 HIVE")
+      }
+
+      const memoKeyRA = accounts[0].memo_key;
       const data = JSON.stringify({account:account,email:email});
       const memo = hive.memo.encode(memoKey, memoKeyRA, "#" + CryptoJS.AES.encrypt(data,secret).toString());
 
@@ -91,7 +93,7 @@ $(document).ready(async function() {
       })
       .catch(err => {
         console.log(err)
-        feedback.addClass('alert-danger').text(e.message);
+        feedback.addClass('alert-danger').text(err.message);
       });
       
     } catch(e) {
