@@ -67,7 +67,7 @@ $(document).ready(async function() {
         throw (`Unknown account ${account}`)
       }
       if(accounts[1].balance.startsWith("0.000")) {
-        throw ("Insufficient HIVE balance - need at least 0.001 HIVE")
+        throw ("Insufficient HIVE balance - You need at least 0.001 HIVE")
       }
 
       const memoKeyRA = accounts[0].memo_key;
