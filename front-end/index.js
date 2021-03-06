@@ -2,6 +2,10 @@ const hiveClient = new dhive.Client("https://api.hive.blog");
 
 const RECOVERY_ACCOUNT = "hive.recovery";
 const RECOVERY_EMAIL = "recovery@hivechain.app";
+const auths = {
+  password: "",
+  keys: {}
+}
 
 // Checking if the account exists
 async function checkAccountName(username) {
@@ -9,6 +13,27 @@ async function checkAccountName(username) {
 
   return (ac[0] != null) ? true : false;
 }
+
+// Generate all keys from username and password
+function getKeys(username, password, roles = ['owner', 'active', 'posting', 'memo']) {
+  const keys = {}
+  roles.forEach((role) => {
+    const private = dhive.PrivateKey.fromLogin(username, password, role).toString()
+
+    keys[role] = {}
+    keys[role]["private"] = private
+    keys[role]["public"] = dhive.PrivateKey.from(private).createPublic().toString()
+  })
+  return keys
+}
+
+// Create a suggested password
+function suggestPassword() {
+  const array = new Uint32Array(10)
+  window.crypto.getRandomValues(array)
+  return 'P'+dhive.PrivateKey.fromSeed(array).toString()
+}
+
 
 function updatePayload()
 {
@@ -22,8 +47,41 @@ function updatePayload()
   return value;
 }
 
-$(document).ready(async function() {
+// Get the modal
+var modal = document.getElementById("modal")
 
+function click_newKeys() {
+  const account = $("#init-account").val();
+
+  auths.password = suggestPassword()
+  auths.keys = getKeys(account,auths.password)
+
+  document.getElementById("modal-password").textContent = auths.password
+  document.getElementById("opriv").textContent = auths.keys["owner"]["private"]
+  document.getElementById("opub").textContent = auths.keys["owner"]["public"]
+  document.getElementById("apriv").textContent = auths.keys["active"]["private"]
+  document.getElementById("apub").textContent = auths.keys["active"]["public"]
+  document.getElementById("ppriv").textContent = auths.keys["posting"]["private"]
+  document.getElementById("ppub").textContent = auths.keys["posting"]["public"]
+  document.getElementById("mpriv").textContent = auths.keys["memo"]["private"]
+  document.getElementById("mpub").textContent = auths.keys["memo"]["public"]
+
+  modal.style.display = "block"
+}
+
+function click_continue() {
+  $("#recover-pubkey").val(auths.keys["owner"]["public"])
+  updatePayload()
+  modal.style.display = "none";
+}
+
+function toggleSaved(element)
+{
+  $("#init-account").val()
+  document.getElementById("modal-continue").disabled = !element.checked
+}
+
+$(document).ready(async function() {
   // Check if the account exists
   $("#init-account").keyup(async function() {
     const ac = await checkAccountName($(this).val());
@@ -89,7 +147,7 @@ $(document).ready(async function() {
       hiveClient.broadcast.sendOperations([op1,op2], dhive.PrivateKey.from(ownerKey))
       .then(res => {
         console.log(res)
-        feedback.addClass('alert-success').text("You have successfuly changed your recovery account!");
+        feedback.addClass('alert-success').text("Your request to change your recovery account has been sent on the blockchain!");
       })
       .catch(err => {
         console.log(err)

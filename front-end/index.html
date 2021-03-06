@@ -6,6 +6,37 @@
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
 	<link rel="icon" href="favicon.ico" />
 	<title>Hive Account Recovery</title>
+
+	<style>
+		.modal {
+			display: none; /* Hidden by default */
+			position: fixed; /* Stay in place */
+			z-index: 1; /* Sit on top */
+			padding-top: 100px; /* Location of the box */
+			left: 0;
+			top: 0;
+			width: 100%; /* Full width */
+			height: 100%; /* Full height */
+			overflow: auto; /* Enable scroll if needed */
+			background-color: rgb(0,0,0); /* Fallback color */
+			background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+		}
+		.modal-content {
+			background-color: #fefefe;
+			margin: auto;
+			padding: 20px;
+			border: 1px solid #888;
+			width: 60%;
+		}
+		.key {
+			font-family: monospace;
+			font-size: 12px;
+		}
+		.role {
+			font-size: 14px;
+			font-weight: bold;
+		}
+	</style>
 </head>
 <body>
 	<div class="container pt-3">
@@ -52,7 +83,8 @@
 			<div class="form-group">
 				<label for="recover-pubkey" class="text-dark">New Public Owner Key</label>
 				<input type="text" name="recover-pubkey" id="recover-pubkey" autocomplete="off" class="form-control">
-				<p class="text-muted">Enter thenew public owner key.</p>
+				<p class="text-muted">Enter the new public owner key.</p>
+				<button id="btn_keys" class="btn btn-danger" type="button" onclick="click_newKeys()">Generate new Password and Keys</button>
 			</div>
 			<div class="form-group">
 				<label for="recover-payload" class="text-dark">Recovery Request Payload</label>
@@ -68,6 +100,53 @@
 			Open source <a href="https://github.com/VIM-Arcange/hive-Recovery">on GitHub</a>.
 		</p>
 	</div>
+
+	<div id="modal" class="modal">
+		<div class="modal-content">
+			<h3><center>Your new Hive password and keys</center></h3>
+			<p>
+				<div><b>Password</b></div>
+				<div class="key" id="modal-password"></div>
+			</p>
+			<table style="width:100%">
+				<tr>
+					<th><b></b></th>
+					<th><b>Private Key</b></th>
+					<th><b>Public Key</b></th>
+				</tr>
+				<tr>
+					<td class="role">Owner</td>
+					<td class="key" id="opriv">x</td>
+					<td class="key" id="opub">x</td>
+				</tr>
+				<tr>
+					<td class="role">Active</td>
+					<td class="key" id="apriv"></td>
+					<td class="key" id="apub"></td>
+				</tr>
+				<tr>
+					<td class="role">Posting</td>
+					<td class="key" id="ppriv"></td>
+					<td class="key" id="ppub"></td>
+				</tr>
+				<tr>
+					<td class="role">Memo</td>
+					<td class="key" id="mpriv"></td>
+					<td class="key" id="mpub"></td>
+				</tr>
+			</table>
+			<p>
+				<div>Please backup your account password and keys!</div>
+				<div>Be aware that if you lose your password your account cannot be recovered.</div>
+			</p>
+			<p>	
+				<input type="checkbox" id="saved" name="saved" value="saved" onchange="toggleSaved(this)">
+				<b><label for="saved">I have saved my new password and keys</label></b>
+			</p>
+			<button id="modal-continue" class="btn btn-danger" type="button" onclick="click_continue()" disabled>Continue</button>
+		</div>
+	</div>
+
 	<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
 	<script src="https://unpkg.com/@hiveio/dhive@latest/dist/dhive.js"></script>
 	<script src="crypto-js.js"></script>
