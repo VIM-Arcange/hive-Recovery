@@ -1,4 +1,4 @@
-const { Client, PrivateKey } = require('@hiveio/dhive');
+const { Client, PrivateKey, Authority } = require('@hiveio/dhive');
 const axios = require('axios');
 const cryptoJS = require('crypto-js')
 const imaps = require('imap-simple');
@@ -121,33 +121,6 @@ async function findSetup(name) {
   }
 }
 
-// Search for last Recovery Request made in last 24h
-async function findRequest(name) {
-  try {
-    const LIMIT = 1
-    const timestamp = Date.now() - (LIMIT*msDay);
-    const page = 100
-    let lastID = (await get_accounts_history(config.account.name, -1, 0))[0][0]
-    while(lastID > 0) {
-      const history = (await get_accounts_history(config.account.name, lastID, Math.min(lastID,page-1)))
-      const request = history.filter(o => Date.parse(o[1].timestamp) > timestamp && o[1].op[0]=="request_account_recovery" && o[1].op[1].account_to_recover==name)
-      const tx = request.pop()
-      if(tx) {
-        logdebug(tx)
-        return tx
-      }
-      // Stop browsing tx older than LIMIT
-      if(Date.parse((history.pop())[1].timestamp) < timestamp ) {
-        return undefined
-      }
-      lastID -= page
-    }
-    return undefined
-  } catch(e) {
-    logerror(e.message)
-  }
-}
-
 async function processBody(from, text)  {
   const data = JSON.parse(text)
 
@@ -171,10 +144,10 @@ async function processBody(from, text)  {
   if(payload.account!=data.account) throw new Error(`Account mismatch - payload:${payload.account} sent:${data.account}`)
   if(payload.email && payload.email!=from) throw new Error(`Email mismatch - payload:${payload.email} sent:${from}`)
   // search for last recovery request
-  const txRequest =  await findRequest(name)
-  if(txRequest) throw new Error(`Declined - Wait 24 hours between requests`)
+  const request = await hiveClient.database.call('get_recovery_request', [data.account])
+  if(request) throw new Error(`Declined - A recovery request for this @${data.account} already exist `)
 
-  const opRecovery = [ "request_account_recovery",
+  const op = [ "request_account_recovery",
     {
       "recovery_account":config.account.name,
       "account_to_recover":data.account,
@@ -207,7 +180,7 @@ const service = async () => {
         log(`Processing message from ${from} - ${parsed.subject}`)
         await processBody(from, body)			
         // Mark message for deletion if successfully processed
-        await imap.addFlags(message.attributes.uid, "\Deleted")
+        await connection.imap.addFlags(message.attributes.uid, "\Deleted")
       } catch(e) {
         logerror(e.message)
       }

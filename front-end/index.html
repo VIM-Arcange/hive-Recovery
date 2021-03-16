@@ -4,151 +4,197 @@
 	<meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-	<link rel="icon" href="favicon.ico" />
+	<link rel="stylesheet" href="style.css">
 	<title>Hive Account Recovery</title>
-
-	<style>
-		.modal {
-			display: none; /* Hidden by default */
-			position: fixed; /* Stay in place */
-			z-index: 1; /* Sit on top */
-			padding-top: 100px; /* Location of the box */
-			left: 0;
-			top: 0;
-			width: 100%; /* Full width */
-			height: 100%; /* Full height */
-			overflow: auto; /* Enable scroll if needed */
-			background-color: rgb(0,0,0); /* Fallback color */
-			background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-		}
-		.modal-content {
-			background-color: #fefefe;
-			margin: auto;
-			padding: 20px;
-			border: 1px solid #888;
-			width: 60%;
-		}
-		.key {
-			font-family: monospace;
-			font-size: 12px;
-		}
-		.role {
-			font-size: 14px;
-			font-weight: bold;
-		}
-	</style>
 </head>
 <body>
 	<div class="container pt-3">
-		<h1 class="text-center mb-5"><img src="logo.png">Hive Account Recovery</h1>
-		<h3>Change Recovery Account</h3>
-		<form id="recovery-init" method="POST">
-			<div id="recovery-init-feedback" class="alert"></div>
-			<div class="form-group">
-				<label for="init-account" class="sr-only">Your Account Name</label>
-				<input type="text" name="init-account" id="init-account" autocomplete="off" class="form-control" placeholder="Username">
-				<p class="text-muted small mt-1">Enter your account name</p>
-			</div>
-			<div class="form-group">
-				<label for="init-password" class="sr-only">Master Password</label>
-				<input type="password" name="init-password" id="init-password" autocomplete="off" class="form-control" placeholder="Master Password">
-				<p class="text-muted small mt-1">Enter your account MASTER PASSWORD</p>
-			</div>			
-			<div class="form-group">
-				<label for="init-email" class="sr-only">Email Address</label>
-				<input type="text" name="init-email" id="init-email" autocomplete="off" class="form-control" placeholder="Email address">
-				<p class="text-muted small mt-1">(optional) Enter your email address. <strong>Do not use temporary email address!</strong></p>
-			</div>
-			<div class="form-group">
-				<label for="init-secret" class="sr-only">Secret Passphrase</label>
-				<input type="text" name="init-secret" id="init-secret" autocomplete="off" class="form-control" placeholder="Secret passphrase">
-				<p class="text-muted small mt-1">Enter your secret passphrase to encrypt your data</p>
-			</div>
-			<button class="btn btn-danger btn-block" type="submit">Submit</button>
-		</form>
-		<hr>
-		<h3>Recover my account</h3>
-		<form id="recovery-perform" method="POST">
-			<div id="recovery-perform-feedback" class="alert"></div>
-			<div class="form-group">
-				<label for="recover-account" class="text-dark">Your Account Name</label>
-				<input type="text" name="recover-account" id="recover-account" autocomplete="off" class="form-control">
-				<p class="text-muted">Enter the name of the account you want to recover.</p>
-			</div>
-			<div class="form-group">
-				<label for="recover-secret" class="text-dark">Secret Passphrase</label>
-				<input type="text" name="recover-secret" id="recover-secret" autocomplete="off" class="form-control">
-				<p class="text-muted">Enter the secret passphrase you used to setup the recovery account.</p>
-			</div>
-			<div class="form-group">
-				<label for="recover-pubkey" class="text-dark">New Public Owner Key</label>
-				<input type="text" name="recover-pubkey" id="recover-pubkey" autocomplete="off" class="form-control">
-				<p class="text-muted">Enter the new public owner key.</p>
-				<button id="btn_keys" class="btn btn-danger" type="button" onclick="click_newKeys()">Generate new Password and Keys</button>
-			</div>
-			<div class="form-group">
-				<label for="recover-payload" class="text-dark">Recovery Request Payload</label>
-				<input type="text" name="recover-payload" id="recover-payload" readonly class="form-control">
-				<p class="text-muted">Use this text for your Account Recovery Request email.</p>
-			</div>
-			<button class="btn btn-danger btn-block" type="submit">Generate email</button>
-		</form>
+		<h1 class="text-center mb-4"><img src="logo.png">Hive Account Recovery</h1>
 
+		<div class="row">
+			<div class="offset-md-2 col-md-8">
+				<div class="form-group">
+					<div class="input-group">
+						<div class="input-group-prepend">
+							<span class="input-group-text">@</span>
+						</div>
+						<input type="text" name="account" id="account" autocomplete="off" class="form-control" placeholder="Username">
+						<div class="input-group-append">
+							<button id="account-check" class="btn btn-secondary" type="button" disabled onclick="click_accountcheck()"><i class="fas fa-user-check"></i></button>
+						</div>
+					</div>
+					<p class="text-muted">Enter a valid account and click the check button or hit Enter.</p>
+				</div>
+				<div id="account-feedback" class="alert"></div>
+				<div class="row">
+					<div class="col-md-4 text-center">
+						<button id="btn-change" class="btn btn-secondary tab" type="button" disabled onclick="select_tab('change')">Change Recovery Account</button>
+					</div>
+					<div class="col-md-4 text-center">
+						<button id="btn-request" class="btn btn-secondary tab" type="button" disabled onclick="select_tab('request')">Request Recovery</button>
+					</div>
+					<div class="col-md-4 text-center">
+						<button id="btn-confirm" class="btn btn-secondary tab" type="button" disabled onclick="select_tab('confirm')">Confirm Recovery</button>
+					</div>
+				</div>		
+				<div id="change" class="tab-content" style="display: none">
+					<hr>
+					<h3 id="change-title">Change Recovery Account</h3>
+					<div id="change-done">
+						@hive.recovery is already set as your recovery account.
+					</div>
+					<form id="change-form" method="POST">
+						<div id="change-feedback" class="alert"></div>
+						<div class="form-group">
+							<label for="change-password" class="sr-only">Master Password</label>
+							<div class="input-group">
+								<input type="password" name="change-password" id="change-password" autocomplete="off" class="form-control" placeholder="Master Password">
+								<div class="input-group-append">
+									<button class="btn" type="button" onclick="click_reveal('change-password')"><i class="fas fa-eye"></i></button>
+								</div>
+							</div>
+							<p class="text-muted small mt-1">Enter your account MASTER PASSWORD</p>
+						</div>			
+						<div class="form-group">
+							<label for="change-email" class="sr-only">Email Address</label>
+							<input type="text" name="change-email" id="change-email" autocomplete="off" class="form-control" placeholder="Email address">
+							<p class="text-muted small mt-1">(optional) Enter your email address. <strong>Do not use temporary email address!</strong></p>
+						</div>
+						<div class="form-group">
+							<label for="change-secret" class="sr-only">Secret Passphrase</label>
+							<input type="text" name="change-secret" id="change-secret" autocomplete="off" class="form-control" placeholder="Secret passphrase">
+							<p class="text-muted small mt-1">Enter your secret passphrase to encrypt your data</p>
+						</div>
+						<div>	
+							<input type="checkbox" id="change-saved" name="change-saved" value="change-saved" onchange="toggleChangeSaved(this)">
+							<b><label for="change-saved">I have saved my secret passphrase</label></b>
+						</div>
+						<button id="btn-change-do" class="btn btn-danger btn-block" type="submit">Submit</button>
+					</form>
+				</div>
+				<div id="request" class="tab-content" style="display: none">
+					<hr>
+					<h3 id="request-title">Start my account recovery</h3>
+					<div id="request-done">
+					</div>
+					<form id="request-form" method="POST">
+						<div id="request-feedback" class="alert"></div>
+						<div class="form-group">
+							<label for="request-secret" class="text-dark">Secret Passphrase</label>
+							<input type="text" name="request-secret" id="request-secret" autocomplete="off" class="form-control">
+							<p class="text-muted">Enter the secret passphrase you used when you changed the recovery account.</p>
+						</div>
+						<div class="form-group">
+							<label for="request-pubkey" class="text-dark">New Public Owner Key</label>
+							<input type="text" name="request-pubkey" id="request-pubkey" autocomplete="off" class="form-control">
+							<p class="text-muted">Enter your new public owner key.</p>
+							<button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#modal">Generate new Password and Keys</button>
+							<!-- <button class="btn btn-danger" type="button" onclick="click_newKeys()">Generate new Password and Keys</button> -->
+						</div>
+						<div class="form-group">
+							<label for="recover-payload" class="text-dark">Recovery Request Payload</label>
+							<div class="input-group">
+								<input type="text" name="recover-payload" id="recover-payload" readonly class="form-control">
+								<div class="input-group-append">
+									<button id="payload-copy" class="btn btn-secondary" type="button" onclick="click_payloadcopy()"><i class="far fa-copy"></i></button>
+								</div>
+							</div>
+							<p class="text-muted">Use this text for your Account Recovery Request email.</p>
+						</div>
+						<button id="btn-request-do" class="btn btn-danger btn-block" type="submit">Generate email</button>
+					</form>
+				</div>
+				<div id="confirm" class="tab-content" style="display: none">
+					<hr>
+					<h3>Confirm my account recovery</h3>
+					<form id="confirm-form" method="POST">
+						<div id="confirm-feedback" class="alert"></div>
+						<div class="form-group">
+							<label for="confirm-new-pub" class="sr-only">New Private Owner Key</label>
+							<input name="confirm-new-pub" id="confirm-new-pub" class="form-control" disabled>
+							<p class="text-muted small mt-1">New Public Owner Key from your last recovery request.</p>
+						</div>
+						<div class="form-group">
+							<div class="input-group">
+								<input type="password" name="confirm-old-priv" id="confirm-old-priv" class="form-control">
+								<div class="input-group-append">
+									<button class="btn" type="button" onclick="click_reveal('confirm-old-priv')"><i class="fas fa-eye"></i></button>
+								</div>
+							</div>
+							<p class="text-muted small mt-1">Recent Private Owner Key (must not be older than 30 days).</p>
+						</div>
+						<div class="form-group">
+							<div class="input-group">
+								<input type="password" name="confirm-new-pass" id="confirm-new-pass" class="form-control">
+								<div class="input-group-append">
+									<button class="btn" type="button" onclick="click_reveal('confirm-new-pass')"><i class="fas fa-eye"></i></button>
+								</div>
+							</div>
+							<p class="text-muted small mt-1">New Master Password you generated.</p>
+						</div>
+						<button id="btn-confirm-do" class="btn btn-secondary btn-block" type="submit">Submit confirmation</button>
+					</form>		
+				</div>
+			</div>
+		</div>
 		<hr>
 		<p class="text-center">
-			Brought to you by <a href="https://peakd.com/@arcange">@arcange</a><br>
-			Open source <a href="https://github.com/VIM-Arcange/hive-Recovery">on GitHub</a>.
+			Brought to you by <a href="https://peakd.com/@arcange">@arcange</a> - Open source on <a href="https://github.com/VIM-Arcange/hive-Recovery">GitHub</a>.
 		</p>
 	</div>
-
 	<div id="modal" class="modal">
-		<div class="modal-content">
-			<h3><center>Your new Hive password and keys</center></h3>
-			<p>
-				<div><b>Password</b></div>
-				<div class="key" id="modal-password"></div>
-			</p>
-			<table style="width:100%">
-				<tr>
-					<th><b></b></th>
-					<th><b>Private Key</b></th>
-					<th><b>Public Key</b></th>
-				</tr>
-				<tr>
-					<td class="role">Owner</td>
-					<td class="key" id="opriv">x</td>
-					<td class="key" id="opub">x</td>
-				</tr>
-				<tr>
-					<td class="role">Active</td>
-					<td class="key" id="apriv"></td>
-					<td class="key" id="apub"></td>
-				</tr>
-				<tr>
-					<td class="role">Posting</td>
-					<td class="key" id="ppriv"></td>
-					<td class="key" id="ppub"></td>
-				</tr>
-				<tr>
-					<td class="role">Memo</td>
-					<td class="key" id="mpriv"></td>
-					<td class="key" id="mpub"></td>
-				</tr>
-			</table>
-			<p>
-				<div>Please backup your account password and keys!</div>
-				<div>Be aware that if you lose your password your account cannot be recovered.</div>
-			</p>
-			<p>	
-				<input type="checkbox" id="saved" name="saved" value="saved" onchange="toggleSaved(this)">
-				<b><label for="saved">I have saved my new password and keys</label></b>
-			</p>
-			<button id="modal-continue" class="btn btn-danger" type="button" onclick="click_continue()" disabled>Continue</button>
+		<div class="modal-dialog modal-lg" role="document">
+			<div class="modal-content">
+				<h3><center>Your new Hive password and keys</center></h3>
+				<p>
+					<div><b>Password</b></div>
+					<div class="key" id="modal-password"></div>
+				</p>
+				<table style="width:100%">
+					<tr>
+						<th><b></b></th>
+						<th><b>Private Key</b></th>
+						<th><b>Public Key</b></th>
+					</tr>
+					<tr>
+						<td class="role">Owner</td>
+						<td class="key" id="opriv">x</td>
+						<td class="key" id="opub">x</td>
+					</tr>
+					<tr>
+						<td class="role">Active</td>
+						<td class="key" id="apriv"></td>
+						<td class="key" id="apub"></td>
+					</tr>
+					<tr>
+						<td class="role">Posting</td>
+						<td class="key" id="ppriv"></td>
+						<td class="key" id="ppub"></td>
+					</tr>
+					<tr>
+						<td class="role">Memo</td>
+						<td class="key" id="mpriv"></td>
+						<td class="key" id="mpub"></td>
+					</tr>
+				</table>
+				<p>
+					<div>Please backup your account password and keys!</div>
+					<div>Be aware that if you lose your password, your account cannot be recovered.</div>
+				</p>
+				<p>	
+					<input type="checkbox" id="modal-saved" name="modal-saved" value="modal-saved" onchange="toggleModalSaved(this)">
+					<b><label for="modal-saved">I have saved my new password and keys</label></b>
+				</p>
+				<button id="modal-continue" class="btn btn-danger" type="button" onclick="click_continue()" disabled>Continue</button>
+			</div>
 		</div>
 	</div>
 
+	
 	<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>	
 	<script src="https://unpkg.com/@hiveio/dhive@latest/dist/dhive.js"></script>
+	<script src="https://kit.fontawesome.com/a2158874e7.js" crossorigin="anonymous"></script>
 	<script src="crypto-js.js"></script>
 	<script src="hive.min.js"></script>
 	<script src="index.js"></script>
