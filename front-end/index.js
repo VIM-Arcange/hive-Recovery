@@ -67,6 +67,8 @@ function reset_forms() {
   btnRequest.textContent = "Request Recovery"
   btnConfirm.textContent = "Confirm Recovery"
 
+  $("#account-feedback").text("");
+
   uiChangeTitle.style.display = 'block'
   $("#change-password").val("");
   $("#change-email").val("");
@@ -155,6 +157,8 @@ async function click_accountcheck() {
   const recoverable = ((now.getTime() - lastUpdate.getTime()) < (30*24*60*60*1000))
 
   uiChangeSaved.checked = false
+
+  $("#account-feedback").text(`Your Recovery Account is @${account.recovery_account}`);
 
   if(account.recovery_account!=RECOVERY_ACCOUNT) {
     if(requestChange && requestChange.recovery_account==RECOVERY_ACCOUNT) {
@@ -396,7 +400,7 @@ $(document).ready(async function(event) {
         }];
         const res1 = await hiveClient.broadcast.sendOperations([op1], [dhive.PrivateKey.from(oldPriv), dhive.PrivateKey.from(newPass)])
         console.log(res1);
-        feedback.addClass('alert-success').html(`<strong>Your account has been recovered successfully.</strong>`);
+        feedback.addClass('alert-success').html(`<strong@$>Your account has been recovered successfully.</strong@$>`);
   
         // Update account with the new keys
         const op2 = {
