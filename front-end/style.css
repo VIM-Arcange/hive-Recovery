@@ -29,7 +29,11 @@ label {
 
 .modal-content {
     padding: 1rem;
-} 
+}
+
+.username {
+    text-transform: lowercase;
+}
 
 .key {
     font-family: monospace;
