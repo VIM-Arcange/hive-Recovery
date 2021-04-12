@@ -405,7 +405,7 @@ $(document).ready(async function(event) {
         // Update account with the new keys
         const op2 = {
           account: username,
-          owner: Authority.from({ weight_threshold: 1, account_auths: [], key_auths: [[keys["ower"]["public"], 1]] }),
+          owner: Authority.from({ weight_threshold: 1, account_auths: [], key_auths: [[keys["owenr"]["public"], 1]] }),
           active: Authority.from({ weight_threshold: 1, account_auths: [], key_auths: [[keys["active"]["public"], 1]] }),
           posting: Authority.from({ weight_threshold: 1, account_auths: [], key_auths: [[keys["posting"]["public"], 1]] }),
           memo_key: keys["memo"]["public"],
