@@ -34,11 +34,11 @@ const msg_request_pending ="@hive.recovery has issued the recovery request. Conf
 function getKeys(username, password, roles = ['owner', 'active', 'posting', 'memo']) {
   const keys = {}
   roles.forEach((role) => {
-    const private = dhive.PrivateKey.fromLogin(username, password, role).toString()
+    const priv = dhive.PrivateKey.fromLogin(username, password, role).toString()
 
     keys[role] = {}
-    keys[role]["private"] = private
-    keys[role]["public"] = dhive.PrivateKey.from(private).createPublic().toString()
+    keys[role]["private"] = priv
+    keys[role]["public"] = dhive.PrivateKey.from(priv).createPublic().toString()
   })
   return keys
 }
@@ -389,7 +389,7 @@ $(document).ready(async function(event) {
           new_owner_authority: {
             "weight_threshold": 1,
             "account_auths": [],
-            "key_auths": [[dhive.PrivateKey.from(keys["ower"]["private"]).createPublic().toString(), 1]]
+            "key_auths": [[dhive.PrivateKey.from(keys["owner"]["private"]).createPublic().toString(), 1]]
           },
           recent_owner_authority: {
             "weight_threshold": 1,
@@ -405,13 +405,13 @@ $(document).ready(async function(event) {
         // Update account with the new keys
         const op2 = {
           account: username,
-          owner: Authority.from({ weight_threshold: 1, account_auths: [], key_auths: [[keys["owenr"]["public"], 1]] }),
+          owner: Authority.from({ weight_threshold: 1, account_auths: [], key_auths: [[keys["owner"]["public"], 1]] }),
           active: Authority.from({ weight_threshold: 1, account_auths: [], key_auths: [[keys["active"]["public"], 1]] }),
           posting: Authority.from({ weight_threshold: 1, account_auths: [], key_auths: [[keys["posting"]["public"], 1]] }),
           memo_key: keys["memo"]["public"],
           json_metadata: "",
         }
-        const res2 = await hiveClient.broadcast.updateAccount(op2, PrivateKey.from(keys["ower"]["private"]))
+        const res2 = await hiveClient.broadcast.updateAccount(op2, PrivateKey.from(keys["owner"]["private"]))
         console.log(res2)
       } catch(e) {
         console.log(e);
