@@ -36,7 +36,7 @@ async function notify(subject,body="") {
       text: body,
       html: body
     })
-  } 
+  }
   catch(e) {
     console.error(e)
   }
@@ -83,7 +83,7 @@ async function get_accounts(accounts) {
   const call = {
     "jsonrpc":"2.0",
     "id":1,
-    "method":"condenser_api.get_accounts", 
+    "method":"condenser_api.get_accounts",
     "params":[accounts]
   }
   return (await post(call)).result
@@ -93,7 +93,7 @@ async function get_account_history(account, start, limit) {
   const call = {
     "jsonrpc":"2.0",
     "id":1,
-    "method":"condenser_api.get_account_history", 
+    "method":"condenser_api.get_account_history",
     "params":[account, start, limit]
   }
   return (await post(call)).result
@@ -104,7 +104,7 @@ async function findSetup(name) {
   try {
     const MIN_DELAY = 30
     const timestamp = Date.now() - (MIN_DELAY*msDay);
-    const page = 5
+    const page = 1000
     let lastID = (await get_account_history(config.account.name, -1, 1))[0][0]
     while(lastID > 0) {
       const history = (await get_account_history(config.account.name, lastID, Math.min(lastID,page-1)))
@@ -176,9 +176,9 @@ const service = async () => {
         const parsed = await parser(message.parts[0].body)
         const body = parsed.text.trim().replace("\n"," ")
         const from = parsed.from.value[0].address
-  
+
         log(`Processing message from ${from} - ${parsed.subject}`)
-        await processBody(from, body)			
+        await processBody(from, body)
         // Mark message for deletion if successfully processed
         await connection.imap.addFlags(message.attributes.uid, "\Deleted")
       } catch(e) {
@@ -195,7 +195,7 @@ const service = async () => {
 }
 
 async function test() {
-  service()
+  await service()
 }
 
 (async () => {
